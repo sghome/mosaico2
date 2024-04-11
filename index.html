@@ -1,64 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico de Imágenes desde Google Drive</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://apis.google.com/js/api.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mosaico de Imágenes desde Dropbox</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
 </head>
 <body>
-    <script>
-        var img;
-        var emoji_0, emoji_64, emoji_128, emoji_192;
+  <script>
+    var img;
+    var emoji_0, emoji_64, emoji_128, emoji_192;
 
-        function preload() {
-            // Cargar la imagen de entrada
-            img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/DSC02533.jpeg");
+    function preload() {
+      img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua-escuela.jpg");
+      emoji_192 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg"); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
+      emoji_128 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
+      emoji_64 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg");   // Reemplaza "URL_IMAGEN_64" con el enlace directo a la imagen correspondiente en Dropbox
+      emoji_0 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429309602_1946910019039923_5203933763868921566_n.jpg");     // Reemplaza "URL_IMAGEN_0" con el enlace directo a la imagen correspondiente en Dropbox
+    }
 
-            // Cargar las imágenes de mosaico desde Google Drive
-            emoji_0 = loadImage("https://www.dropbox.com/scl/fi/mq5xqcky91g8tpcsemg7z/301847927_120068537467421_835214114763649869_n.jpg?rlkey=dvss6rprsdfocxrxgp2vx6yrq&dl=0");
-            emoji_64 = loadImage("https://www.dropbox.com/scl/fi/e5wubcrf78dlh3pz70f3w/198845101_989500098492476_3555566408394435419_n.jpg?rlkey=6jie9qzfiae421xak54dmw0cs&dl=0");
-            emoji_128 = loadImage("https://www.dropbox.com/scl/fi/e5wubcrf78dlh3pz70f3w/198845101_989500098492476_3555566408394435419_n.jpg?rlkey=6jie9qzfiae421xak54dmw0cs&dl=0");
-            emoji_192 = loadImage("https://www.dropbox.com/scl/fi/7yucg97pvy29z85upet6h/397284941_224601073811443_1524662672321771407_n.jpg?rlkey=uh9wyotimfegvlc8ap5900vk5&dl=0");
+    function setup() { 
+      createCanvas(1000, 800); // Tamaño del lienzo
+      noLoop();
+    }
+
+    function draw() {
+      background(0);
+
+      img.loadPixels();
+      
+      var grid = 15;
+      var diameter = 18;
+
+      for (var y = 0; y < img.height; y += grid) {
+        for (var x = 0; x < img.width; x += grid) {
+          var pix = red(img.get(x, y));
+          
+          if (pix <= 64) {
+            image(emoji_0, x, y, diameter, diameter);
+          } else if (pix > 64 && pix <= 128) {
+            image(emoji_64, x, y, diameter, diameter);
+          } else if (pix > 128 && pix <= 192) {
+            image(emoji_128, x, y, diameter, diameter);
+          } else if (pix > 192 && pix <= 255) {
+            image(emoji_192, x, y, diameter, diameter);
+          }
         }
-
-        function setup() { 
-            createCanvas(1000, 800); // Tamaño del lienzo
-            noLoop();
-        }
-
-        function draw() {
-            background(0);
-
-            // Cargar los píxeles de la imagen de entrada
-            img.loadPixels();
-
-            var grid = 15;
-            var diameter = 18;
-
-            // Iterar sobre los píxeles de la imagen de entrada
-            for (var y = 0; y < img.height; y += grid) {
-                for (var x = 0; x < img.width; x += grid) {
-                    var pix = red(img.get(x, y));
-
-                    // Determinar qué imagen de mosaico usar según el valor del píxel
-                    var mosaicImage;
-                    if (pix <= 64) {
-                        mosaicImage = emoji_0;
-                    } else if (pix > 64 && pix <= 128) {
-                        mosaicImage = emoji_64;
-                    } else if (pix > 128 && pix <= 192) {
-                        mosaicImage = emoji_128;
-                    } else if (pix > 192 && pix <= 255) {
-                        mosaicImage = emoji_192;
-                    }
-
-                    // Dibujar la imagen de mosaico en el lienzo
-                    image(mosaicImage, x, y, diameter, diameter);
-                }
-            }
-        }
-    </script>
+      }
+    }
+  </script>
 </body>
 </html>
