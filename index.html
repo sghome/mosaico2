@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaico de Imágenes desde Google Drive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+    <script>
+        var img;
+        var emoji_0, emoji_64, emoji_128, emoji_192;
+
+        function preload() {
+            // Cargar la imagen de entrada
+            img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/DSC02533.jpeg");
+
+            // Cargar las imágenes de mosaico desde Google Drive
+            emoji_0 = loadImage("URL_IMAGEN_0");
+            emoji_64 = loadImage("URL_IMAGEN_64");
+            emoji_128 = loadImage("URL_IMAGEN_128");
+            emoji_192 = loadImage("URL_IMAGEN_192");
+        }
+
+        function setup() { 
+            createCanvas(1000, 800); // Tamaño del lienzo
+            noLoop();
+        }
+
+        function draw() {
+            background(0);
+
+            // Cargar los píxeles de la imagen de entrada
+            img.loadPixels();
+
+            var grid = 15;
+            var diameter = 18;
+
+            // Iterar sobre los píxeles de la imagen de entrada
+            for (var y = 0; y < img.height; y += grid) {
+                for (var x = 0; x < img.width; x += grid) {
+                    var pix = red(img.get(x, y));
+
+                    // Determinar qué imagen de mosaico usar según el valor del píxel
+                    var mosaicImage;
+                    if (pix <= 64) {
+                        mosaicImage = emoji_0;
+                    } else if (pix > 64 && pix <= 128) {
+                        mosaicImage = emoji_64;
+                    } else if (pix > 128 && pix <= 192) {
+                        mosaicImage = emoji_128;
+                    } else if (pix > 192 && pix <= 255) {
+                        mosaicImage = emoji_192;
+                    }
+
+                    // Dibujar la imagen de mosaico en el lienzo
+                    image(mosaicImage, x, y, diameter, diameter);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
