@@ -34,7 +34,8 @@
     }
 
     function setup() {
-      createCanvas(windowWidth, windowHeight);
+      createCanvas(1080, 1349);
+      loadImageSize();
       noLoop();
       var hammertime = new Hammer(document.body);
       hammertime.get('pinch').set({ enable: true });
@@ -86,9 +87,32 @@
       return total / count;
     }
 
-    function windowResized() {
-      resizeCanvas(windowWidth, windowHeight);
+    // Función para cargar la imagen con el tamaño correcto
+    function loadImageSize() {
+      img.resize(width, height);
+    }
+
+    // Función para controlar el zoom mediante scroll en PC
+    function mouseWheel(event) {
+      zoom += event.delta * 0.01;
+      zoom = constrain(zoom, 0.1, 10); // Limita el zoom
       redraw();
+    }
+
+    // Función para controlar el hiperzoom en dispositivos móviles al hacer click
+    function mouseClicked() {
+      if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+        zoom *= 2;
+        redraw();
+      }
+    }
+
+    // Función para controlar el hiperzoom en dispositivos móviles al hacer doble click
+    function doubleClicked() {
+      if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+        zoom /= 2;
+        redraw();
+      }
     }
   </script>
 </body>
