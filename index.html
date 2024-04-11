@@ -10,20 +10,23 @@
   <script>
     var img;
     var pixelImages = [];
-    var zoom = 1;
+    var zoom = 1; // Factor de zoom
+    var zoomIncrement = 0.1; // Incremento de zoom
+    var zoomMin = 0.1; // Zoom mínimo
+    var zoomMax = 10; // Zoom máximo
+    var mouseXprev = 0;
+    var mouseYprev = 0;
 
     function preload() {
       img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua-escuela.jpg");
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg")); // Agrega más imágenes de píxeles según sea necesario
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429309602_1946910019039923_5203933763868921566_n.jpg"));
+      pixelImages.push(loadImage("https://www.dropbox.com/scl/fo/jj1iaf8dt8ypvxrf6iolt/ACm6JJCxt81dk3Nrl11urFI?rlkey=e1zm5p2ag65gioiblsjcfgxj5&dl=0")); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
+      pixelImages.push(loadImage("https://www.dropbox.com/scl/fi/mq5xqcky91g8tpcsemg7z/301847927_120068537467421_835214114763649869_n.jpg?rlkey=dvss6rprsdfocxrxgp2vx6yrq&dl=0")); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
+      // Agrega más imágenes de píxeles aquí según sea necesario
     }
 
     function setup() { 
-      createCanvas(img.width, img.height); // Tamaño del lienzo igual al tamaño de la imagen principal
+      createCanvas(img.width * zoom, img.height * zoom); // Tamaño del lienzo
       noLoop();
-      pixelDensity(1); // Ajusta la densidad de píxeles para garantizar un mapeo de colores más preciso
     }
 
     function draw() {
@@ -31,37 +34,58 @@
 
       img.loadPixels();
       
-      var grid = 15 * zoom; // Ajusta el tamaño del pixel según el nivel de zoom
+      var grid = 15 * zoom;
       var diameter = 18 * zoom;
 
       for (var y = 0; y < img.height; y += grid) {
         for (var x = 0; x < img.width; x += grid) {
-          var pix = red(img.get(x, y));
-          var closestImage = pixelImages[0]; // Inicialmente establece la imagen más cercana al primer elemento del arreglo
+          var pix = img.get(x, y);
+          var closestImage = pixelImages[0];
 
-          // Encuentra la imagen más cercana al color del pixel
           for (var i = 1; i < pixelImages.length; i++) {
-            var dist1 = dist(red(pixelImages[i]), green(pixelImages[i]), blue(pixelImages[i]), 0, 0, 0); // Calcula la distancia entre los colores
-            var dist2 = dist(red(closestImage), green(closestImage), blue(closestImage), 0, 0, 0);
-            if (abs(dist1 - pix) < abs(dist2 - pix)) {
+            var dist1 = dist(pixelImages[i].levels[0], pixelImages[i].levels[1], pixelImages[i].levels[2], pix[0], pix[1], pix[2]);
+            var dist2 = dist(closestImage.levels[0], closestImage.levels[1], closestImage.levels[2], pix[0], pix[1], pix[2]);
+            if (abs(dist1 - pix.levels[0]) < abs(dist2 - pix.levels[0])) {
               closestImage = pixelImages[i];
             }
           }
 
-          image(closestImage, x, y, diameter, diameter);
+          image(closestImage, x * zoom, y * zoom, diameter, diameter);
         }
       }
     }
 
-    // Funciones para controlar el zoom
     function mouseWheel(event) {
-      zoom -= event.delta * 0.01; // Invierte el desplazamiento para que el zoom sea hacia adentro cuando se desplaza hacia arriba
-      zoom = constrain(zoom, 0.1, 10); // Limita el zoom
-      redraw();
+      var zoomDelta = event.delta > 0 ? -zoomIncrement : zoomIncrement;
+      zoom = constrain(zoom + zoomDelta, zoomMin, zoomMax);
+      resizeCanvas(img.width * zoom, img.height * zoom);
     }
 
     function mouseMoved() {
-      redraw();
+      var x = floor(mouseX / zoom);
+      var y = floor(mouseY / zoom);
+      if (x !== mouseXprev || y !== mouseYprev) {
+        var pix = img.get(x, y);
+        var closestImage = pixelImages[0];
+
+        for (var i = 1; i < pixelImages.length; i++) {
+          var dist1 = dist(pixelImages[i].levels[0], pixelImages[i].levels[1], pixelImages[i].levels[2], pix[0], pix[1], pix[2]);
+          var dist2 = dist(closestImage.levels[0], closestImage.levels[1], closestImage.levels[2], pix[0], pix[1], pix[2]);
+          if (abs(dist1 - pix.levels[0]) < abs(dist2 - pix.levels[0])) {
+            closestImage = pixelImages[i];
+          }
+        }
+
+        var grid = 15 * zoom;
+        var diameter = 18 * zoom;
+        var closestImageX = x * zoom;
+        var closestImageY = y * zoom;
+
+        image(closestImage, closestImageX, closestImageY, diameter, diameter);
+        
+        mouseXprev = x;
+        mouseYprev = y;
+      }
     }
   </script>
 </body>
