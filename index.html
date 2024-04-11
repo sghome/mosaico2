@@ -9,19 +9,21 @@
 <body>
   <script>
     var img;
-    var emoji_0, emoji_64, emoji_128, emoji_192;
+    var pixelImages = [];
+    var zoom = 1;
 
     function preload() {
       img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua-escuela.jpg");
-      emoji_192 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg"); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_128 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_64 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg");   // Reemplaza "URL_IMAGEN_64" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_0 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429309602_1946910019039923_5203933763868921566_n.jpg");     // Reemplaza "URL_IMAGEN_0" con el enlace directo a la imagen correspondiente en Dropbox
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg")); // Agrega más imágenes de píxeles según sea necesario
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"));
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg"));
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429309602_1946910019039923_5203933763868921566_n.jpg"));
     }
 
     function setup() { 
-      createCanvas(1000, 800); // Tamaño del lienzo
+      createCanvas(img.width, img.height); // Tamaño del lienzo igual al tamaño de la imagen principal
       noLoop();
+      pixelDensity(1); // Ajusta la densidad de píxeles para garantizar un mapeo de colores más preciso
     }
 
     function draw() {
@@ -29,24 +31,37 @@
 
       img.loadPixels();
       
-      var grid = 15;
-      var diameter = 18;
+      var grid = 15 * zoom; // Ajusta el tamaño del pixel según el nivel de zoom
+      var diameter = 18 * zoom;
 
       for (var y = 0; y < img.height; y += grid) {
         for (var x = 0; x < img.width; x += grid) {
           var pix = red(img.get(x, y));
-          
-          if (pix <= 64) {
-            image(emoji_0, x, y, diameter, diameter);
-          } else if (pix > 64 && pix <= 128) {
-            image(emoji_64, x, y, diameter, diameter);
-          } else if (pix > 128 && pix <= 192) {
-            image(emoji_128, x, y, diameter, diameter);
-          } else if (pix > 192 && pix <= 255) {
-            image(emoji_192, x, y, diameter, diameter);
+          var closestImage = pixelImages[0]; // Inicialmente establece la imagen más cercana al primer elemento del arreglo
+
+          // Encuentra la imagen más cercana al color del pixel
+          for (var i = 1; i < pixelImages.length; i++) {
+            var dist1 = dist(red(pixelImages[i]), green(pixelImages[i]), blue(pixelImages[i]), 0, 0, 0); // Calcula la distancia entre los colores
+            var dist2 = dist(red(closestImage), green(closestImage), blue(closestImage), 0, 0, 0);
+            if (abs(dist1 - pix) < abs(dist2 - pix)) {
+              closestImage = pixelImages[i];
+            }
           }
+
+          image(closestImage, x, y, diameter, diameter);
         }
       }
+    }
+
+    // Funciones para controlar el zoom
+    function mouseWheel(event) {
+      zoom -= event.delta * 0.01; // Invierte el desplazamiento para que el zoom sea hacia adentro cuando se desplaza hacia arriba
+      zoom = constrain(zoom, 0.1, 10); // Limita el zoom
+      redraw();
+    }
+
+    function mouseMoved() {
+      redraw();
     }
   </script>
 </body>
