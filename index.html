@@ -10,28 +10,20 @@
   <script>
     var img;
     var pixelImages = [];
-    var zoom = 1; // Factor de zoom
-    var zoomIncrement = 0.1; // Incremento de zoom
-    var zoomMin = 0.1; // Zoom mínimo
-    var zoomMax = 10; // Zoom máximo
-    var mouseXprev = 0;
-    var mouseYprev = 0;
+    var zoom = 1;
 
     function preload() {
       img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua-escuela.jpg");
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg")); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/434648224_348427008157091_217330225043198393_n.jpg")); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429311705_779736447350065_4516433906161515358_n.jpg"));
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg")); // Agrega más imágenes de píxeles según sea necesario
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"));
       pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/435476568_2211153502567144_7128119928212242381_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/321517101_1554210981728190_2044147207454020108_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg"));
-      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/423807720_903706265064322_1854665927748668977_n.jpg"));
+      pixelImages.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429309602_1946910019039923_5203933763868921566_n.jpg"));
     }
 
     function setup() { 
-      createCanvas(img.width * zoom, img.height * zoom); // Tamaño del lienzo
+      createCanvas(img.width, img.height); // Tamaño del lienzo igual al tamaño de la imagen principal
       noLoop();
+      pixelDensity(1); // Ajusta la densidad de píxeles para garantizar un mapeo de colores más preciso
     }
 
     function draw() {
@@ -39,58 +31,37 @@
 
       img.loadPixels();
       
-      var grid = 15 * zoom;
+      var grid = 15 * zoom; // Ajusta el tamaño del pixel según el nivel de zoom
       var diameter = 18 * zoom;
 
       for (var y = 0; y < img.height; y += grid) {
         for (var x = 0; x < img.width; x += grid) {
-          var pix = img.get(x, y);
-          var closestImage = pixelImages[0];
+          var pix = red(img.get(x, y));
+          var closestImage = pixelImages[0]; // Inicialmente establece la imagen más cercana al primer elemento del arreglo
 
+          // Encuentra la imagen más cercana al color del pixel
           for (var i = 1; i < pixelImages.length; i++) {
-            var dist1 = dist(pixelImages[i].levels[0], pixelImages[i].levels[1], pixelImages[i].levels[2], pix[0], pix[1], pix[2]);
-            var dist2 = dist(closestImage.levels[0], closestImage.levels[1], closestImage.levels[2], pix[0], pix[1], pix[2]);
-            if (abs(dist1 - pix.levels[0]) < abs(dist2 - pix.levels[0])) {
+            var dist1 = dist(red(pixelImages[i]), green(pixelImages[i]), blue(pixelImages[i]), 0, 0, 0); // Calcula la distancia entre los colores
+            var dist2 = dist(red(closestImage), green(closestImage), blue(closestImage), 0, 0, 0);
+            if (abs(dist1 - pix) < abs(dist2 - pix)) {
               closestImage = pixelImages[i];
             }
           }
 
-          image(closestImage, x * zoom, y * zoom, diameter, diameter);
+          image(closestImage, x, y, diameter, diameter);
         }
       }
     }
 
+    // Funciones para controlar el zoom
     function mouseWheel(event) {
-      var zoomDelta = event.delta > 0 ? -zoomIncrement : zoomIncrement;
-      zoom = constrain(zoom + zoomDelta, zoomMin, zoomMax);
-      resizeCanvas(img.width * zoom, img.height * zoom);
+      zoom -= event.delta * 0.01; // Invierte el desplazamiento para que el zoom sea hacia adentro cuando se desplaza hacia arriba
+      zoom = constrain(zoom, 0.1, 10); // Limita el zoom
+      redraw();
     }
 
     function mouseMoved() {
-      var x = floor(mouseX / zoom);
-      var y = floor(mouseY / zoom);
-      if (x !== mouseXprev || y !== mouseYprev) {
-        var pix = img.get(x, y);
-        var closestImage = pixelImages[0];
-
-        for (var i = 1; i < pixelImages.length; i++) {
-          var dist1 = dist(pixelImages[i].levels[0], pixelImages[i].levels[1], pixelImages[i].levels[2], pix[0], pix[1], pix[2]);
-          var dist2 = dist(closestImage.levels[0], closestImage.levels[1], closestImage.levels[2], pix[0], pix[1], pix[2]);
-          if (abs(dist1 - pix.levels[0]) < abs(dist2 - pix.levels[0])) {
-            closestImage = pixelImages[i];
-          }
-        }
-
-        var grid = 15 * zoom;
-        var diameter = 18 * zoom;
-        var closestImageX = x * zoom;
-        var closestImageY = y * zoom;
-
-        image(closestImage, closestImageX, closestImageY, diameter, diameter);
-        
-        mouseXprev = x;
-        mouseYprev = y;
-      }
+      redraw();
     }
   </script>
 </body>
