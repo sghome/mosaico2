@@ -5,28 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mosaico de Imágenes desde Dropbox</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <style>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
   <script>
     var img;
-    var emoji_0, emoji_64, emoji_128, emoji_192, emoji_2, emoji_3, emoji_4;
+    var emojis = [];
     var zoom = 1; // Zoom inicial
+    var lastZoom = 1; // Último zoom registrado
 
     function preload() {
       img = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/almagua-escuela.jpg");
-      emoji_192 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg"); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_128 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/434648224_348427008157091_217330225043198393_n.jpg"); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_64 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429311705_779736447350065_4516433906161515358_n.jpg");   // Reemplaza "URL_IMAGEN_64" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_0 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg");     // Reemplaza "URL_IMAGEN_0" con el enlace directo a la imagen correspondiente en Dropbox
-      emoji_2 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg");
-      emoji_3 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/435476568_2211153502567144_7128119928212242381_n.jpg");
-      emoji_4 = loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/423807720_903706265064322_1854665927748668977_n.jpg");
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/198845101_989500098492476_3555566408394435419_n.jpg")); // Reemplaza "URL_IMAGEN_192" con el enlace directo a la imagen correspondiente en Dropbox
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/434648224_348427008157091_217330225043198393_n.jpg")); // Reemplaza "URL_IMAGEN_128" con el enlace directo a la imagen correspondiente en Dropbox
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/429311705_779736447350065_4516433906161515358_n.jpg"));   // Reemplaza "URL_IMAGEN_64" con el enlace directo a la imagen correspondiente en Dropbox
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/348264971_589673896302117_8714738300620693336_n.jpg"));     // Reemplaza "URL_IMAGEN_0" con el enlace directo a la imagen correspondiente en Dropbox
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/132792727_837456340130678_6988730526045736713_n.jpg"));
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/435476568_2211153502567144_7128119928212242381_n.jpg"));
+      emojis.push(loadImage("https://cdn.glitch.global/c536c49d-7661-4fd9-81b8-918d12539028/423807720_903706265064322_1854665927748668977_n.jpg"));
     }
 
     function setup() {
-      // Tamaño del canvas ajustado al tamaño de la imagen principal
-      createCanvas(1080, 1349); 
+      createCanvas(windowWidth, windowHeight);
       noLoop();
+      var hammertime = new Hammer(document.body);
+      hammertime.get('pinch').set({ enable: true });
+      hammertime.on('pinch', function(event) {
+        zoom *= event.scale / lastZoom;
+        zoom = constrain(zoom, 0.1, 10);
+        lastZoom = event.scale;
+        redraw();
+      });
     }
 
     function draw() {
@@ -38,18 +55,8 @@
       for (var y = 0; y < img.height; y += pixelSize) {
         for (var x = 0; x < img.width; x += pixelSize) {
           var pix = getAverageColor(img, x, y, pixelSize);
-          var mosaicImage;
-
-          // Asigna la imagen de mosaico según el color promedio
-          if (pix <= 64) {
-            mosaicImage = emoji_0;
-          } else if (pix > 64 && pix <= 128) {
-            mosaicImage = emoji_64;
-          } else if (pix > 128 && pix <= 192) {
-            mosaicImage = emoji_128;
-          } else if (pix > 192 && pix <= 255) {
-            mosaicImage = emoji_192;
-          }
+          var index = floor(map(pix, 0, 255, 0, emojis.length));
+          var mosaicImage = emojis[index];
 
           // Dibuja la imagen de mosaico
           image(mosaicImage, x * zoom, y * zoom, pixelSize * zoom, pixelSize * zoom);
@@ -79,14 +86,8 @@
       return total / count;
     }
 
-    // Funciones para controlar el zoom
-    function mouseWheel(event) {
-      zoom += event.delta * 0.01;
-      zoom = constrain(zoom, 0.1, 10); // Limita el zoom
-      redraw();
-    }
-
-    function mouseMoved() {
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
       redraw();
     }
   </script>
